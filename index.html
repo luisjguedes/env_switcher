@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Environment URL Switcher</title>
+  <link rel="icon" href="https://docs.reltio.com/favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Libre Franklin', sans-serif;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+      background-color: #f9f9f9;
+    }
+    img.banner {
+      width: 100%;
+      max-height: 100px;
+      object-fit: cover;
+      margin-bottom: 1.5rem;
+    }
+    input, button {
+      padding: 0.6rem;
+      font-size: 1rem;
+      width: 100%;
+      margin-bottom: 1rem;
+      box-sizing: border-box;
+    }
+    .options {
+      margin: 1rem 0;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    button {
+      background-color: #004080;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0066cc;
+    }
+    #homeButton {
+      background-color: #888;
+    }
+    #homeButton:hover {
+      background-color: #666;
+    }
+  </style>
+</head>
+<body>
+  <img src="reltio_doc_banner.png" alt="Reltio Documentation Banner" class="banner" />
+  <h2>Environment URL Switcher</h2>
+  <p>Paste a full documentation URL below. The tool will detect the environment and let you switch to another one using the same path.</p>
+  <input type="text" id="urlInput" placeholder="Paste full URL here..." />
+  <div id="options" class="options" style="display: none;">
+    <p id="envMessage"></p>
+    <button id="option1"></button>
+    <button id="option2"></button>
+    <button id="homeButton">Start Over</button>
+  </div>
+  <script>
+    const envMap = {
+      UAT: "https://reltio-preview.portal.heretto.com/en",
+      STAGING: "https://reltio-staging.portal.heretto.com/en",
+      PROD: "https://docs.reltio.com/en"
+    };
+    const envPatterns = {
+      UAT: ["https://reltio-preview.portal.heretto.com/en"],
+      STAGING: [
+        "https://reltio-staging.portal.heretto.com/en",
+        "https://docstaging.reltio.com/en"
+      ],
+      PROD: ["https://docs.reltio.com/en"]
+    };
+    const urlInput = document.getElementById("urlInput");
+    const optionsDiv = document.getElementById("options");
+    const envMessage = document.getElementById("envMessage");
+    const option1 = document.getElementById("option1");
+    const option2 = document.getElementById("option2");
+    const homeButton = document.getElementById("homeButton");
+    urlInput.addEventListener("change", () => {
+      const inputUrl = urlInput.value.trim();
+      let detectedEnv = null;
+      let matchedBase = "";
+      let path = "";
+      for (const [env, patterns] of Object.entries(envPatterns)) {
+        for (const base of patterns) {
+          if (inputUrl.startsWith(base)) {
+            detectedEnv = env;
+            matchedBase = base;
+            path = inputUrl.slice(base.length);
+            break;
+          }
+        }
+        if (detectedEnv) break;
+      }
+      if (!detectedEnv) {
+        alert("URL doesn't match any known environment.");
+        optionsDiv.style.display = "none";
+        return;
+      }
+      const altEnvs = Object.keys(envMap).filter(e => e !== detectedEnv);
+      envMessage.textContent = `Detected environment: ${detectedEnv}. Choose one to switch to:`;
+      option1.textContent = `Open in ${altEnvs[0]}`;
+      option2.textContent = `Open in ${altEnvs[1]}`;
+      option1.onclick = () => {
+        const newUrl = envMap[altEnvs[0]] + path;
+        window.open(newUrl, "_blank");
+      };
+      option2.onclick = () => {
+        const newUrl = envMap[altEnvs[1]] + path;
+        window.open(newUrl, "_blank");
+      };
+      optionsDiv.style.display = "block";
+    });
+    homeButton.addEventListener("click", () => {
+      urlInput.value = "";
+      optionsDiv.style.display = "none";
+    });
+  </script>
+</body>
+</html>
